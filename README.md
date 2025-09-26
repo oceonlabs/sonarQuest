@@ -194,4 +194,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
+
 **SonarQuest** - Making code quality fun, one commit at a time! 🚀
