@@ -1,4 +1,4 @@
-# SonarQuest 🎮
+# SonarQuest 🎮🎖️
 
 A modern gamification application that transforms SonarQube code quality metrics into an engaging leaderboard and achievement system. Built with TanStack Start, TypeScript, and Tailwind CSS.
 
