@@ -147,7 +147,7 @@ The CORS fix is implemented using TanStack Start server functions:
 
 Common connection issues and solutions:
 
-| Error | Solution |
+| **Error** | **Solution** |
 |-------|----------|
 | Network error | Verify SonarQube URL is accessible |
 | Authentication failed | Check your user token is valid |
