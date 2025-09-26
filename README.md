@@ -143,6 +143,21 @@ The CORS fix is implemented using TanStack Start server functions:
 - **No CORS issues** since server-to-server requests aren't restricted
 - **Transparent integration** - no changes needed to existing UI
 
+**Example TanStack Start server function implementation:**  
+_File: `src/routes/api/sonarqube.ts`_
+
+```ts
+// src/routes/api/sonarqube.ts
+import { server$ } from '@tanstack/start/server'
+
+export const getSonarQubeData = server$(async (params) => {
+  const response = await fetch(`https://your-sonarqube-server/api/${params.endpoint}`, {
+    headers: {
+      'Authorization': `Bearer ${process.env.VITE_SONARQUBE_TOKEN}`,
+    },
+  });
+  return response.json();
+});
 ### Troubleshooting
 
 Common connection issues and solutions:
