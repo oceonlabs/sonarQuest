@@ -13,7 +13,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "test": "vitest run",
-    "build:gh-pages": "vite build --base=/sonarQuest/",
+    "build:gh-pages": "vite build --base=/",
     "deploy:gh-pages": "npm run build:gh-pages && gh-pages -d dist"
   },
   "dependencies": {
@@ -45,7 +45,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "jsdom": "^26.0.0",
     "typescript": "^5.7.2",
-    "vite": "^6.3.5",
+    "vite": "^7.1.7",
     "vitest": "^3.0.5",
     "web-vitals": "^4.2.4"
   }
