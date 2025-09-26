@@ -49,7 +49,7 @@ A modern gamification application that transforms SonarQube code quality metrics
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/emy3/sonarQuest.git
+   git clone git@github.com:oceonlabs/sonarQuest.git
    cd sonarQuest
    ```
 
