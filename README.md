@@ -1,8 +1,9 @@
-# SonarQuest 🎮🎖️
+<img width="3456" height="1936" alt="image" src="https://github.com/user-attachments/assets/6ef338b3-b176-4d18-aa24-512b845dd298" /># SonarQuest 🎮🎖️
 
 A modern gamification application that transforms SonarQube code quality metrics into an engaging leaderboard and achievement system. Built with TanStack Start, TypeScript, and Tailwind CSS.
 
-![SonarQuest Dashboard](https://github.com/user-attachments/assets/aa631a63-b3ed-4a6a-897c-c07c3cec7fad)
+<img width="3456" height="1936" alt="image" src="https://github.com/user-attachments/assets/3f148a62-1db9-454f-8ece-8bda37f39abb" />
+
 
 ## Features ✨
 
