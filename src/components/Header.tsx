@@ -1,7 +1,11 @@
 import { Link } from '@tanstack/react-router'
 import { Button } from './ui/button'
+import { Badge } from './ui/badge'
+import { SonarQubeConnectionModal } from './SonarQubeConnectionModal'
+import { useSonarQubeConnection } from '../lib/hooks/useSonarQubeConnection'
 
 export default function Header() {
+  const config = useSonarQubeConnection()
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-gray-50/95 backdrop-blur supports-[backdrop-filter]:bg-gray-50/60">
       <div className="container flex h-16 items-center justify-between px-4">
@@ -52,9 +56,18 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            Connect SonarQube
-          </Button>
+          {config.isConnected && (
+            <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
+              Connected
+            </Badge>
+          )}
+          <SonarQubeConnectionModal
+            trigger={
+              <Button variant="outline" size="sm">
+                {config.isConnected ? 'Settings' : 'Connect SonarQube'}
+              </Button>
+            }
+          />
         </div>
       </div>
     </header>

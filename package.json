@@ -2,7 +2,15 @@
   "name": "sonarquest",
   "version": "1.0.0",
   "description": "A gamification application that transforms SonarQube code quality metrics into an engaging leaderboard and achievement system",
-  "keywords": ["sonarqube", "gamification", "code-quality", "leaderboard", "react", "typescript", "tanstack"],
+  "keywords": [
+    "sonarqube",
+    "gamification",
+    "code-quality",
+    "leaderboard",
+    "react",
+    "typescript",
+    "tanstack"
+  ],
   "author": "SonarQuest Team",
   "license": "MIT",
   "private": true,
@@ -17,6 +25,8 @@
     "deploy:gh-pages": "npm run build:gh-pages && gh-pages -d dist"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-progress": "^1.1.7",
     "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
