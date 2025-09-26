@@ -5,6 +5,7 @@ import viteTsConfigPaths from 'vite-tsconfig-paths'
 import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
+  base: '/', // Using root path for custom domain
   plugins: [
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
