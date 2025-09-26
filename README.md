@@ -98,19 +98,61 @@ src/
 
 ## SonarQube Integration 🔗
 
-Currently, the application uses mock data to demonstrate functionality. To integrate with a real SonarQube instance:
+SonarQuest now includes built-in CORS handling for seamless SonarQube integration. The application uses a server-side proxy to bypass browser CORS restrictions, allowing direct connections to any SonarQube instance.
 
-1. **Set up SonarQube Web API access**
-   - Configure authentication tokens
-   - Set up CORS if needed for browser requests
+### Features
+- ✅ **CORS-free connections**: No browser CORS restrictions
+- ✅ **Secure authentication**: Tokens handled server-side
+- ✅ **Real-time connection testing**: Test your connection before connecting
+- ✅ **Detailed error handling**: Clear error messages for troubleshooting
+- ✅ **Organization support**: Works with SonarCloud and multi-org setups
 
-2. **Replace mock data service**
-   - Update `src/lib/mockData.ts` with actual API calls
-   - Implement data fetching hooks or services
+### Quick Setup
 
-3. **Environment Configuration**
-   - Add SonarQube server URL to environment variables
-   - Configure authentication credentials
+1. **Click "Connect SonarQube"** in the application header
+2. **Enter your SonarQube details**:
+   - Server URL (e.g., `https://your-sonarqube.company.com`)
+   - User Token (generate in SonarQube: Account → Security → Tokens)
+   - Organization (optional, for SonarCloud or multi-org setups)
+3. **Test Connection** to verify the setup
+4. **Connect** to start using real data
+
+### Environment Configuration (Optional)
+
+For automatic connection on startup, set these environment variables:
+
+```bash
+# Your SonarQube server URL
+VITE_SONARQUBE_URL=https://your-sonarqube-instance.com
+
+# SonarQube user token
+VITE_SONARQUBE_TOKEN=your_sonarqube_token_here
+
+# Organization key (optional)
+VITE_SONARQUBE_ORGANIZATION=your_organization_key
+
+# Enable real data mode
+VITE_USE_REAL_SONARQUBE=true
+```
+
+### Technical Implementation
+
+The CORS fix is implemented using TanStack Start server functions:
+- **Client requests** go to a server-side proxy function
+- **Server proxy** makes the actual SonarQube API calls
+- **No CORS issues** since server-to-server requests aren't restricted
+- **Transparent integration** - no changes needed to existing UI
+
+### Troubleshooting
+
+Common connection issues and solutions:
+
+| Error | Solution |
+|-------|----------|
+| Network error | Verify SonarQube URL is accessible |
+| Authentication failed | Check your user token is valid |
+| Access forbidden | Ensure token has sufficient permissions |
+| Server not found | Verify the server URL is correct |
 
 ### Example API Integration
 

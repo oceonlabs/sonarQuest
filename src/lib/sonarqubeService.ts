@@ -1,4 +1,6 @@
 // SonarQube API service for connecting to your Oracle Cloud instance
+import { sonarQubeProxy } from './sonarqubeProxy'
+
 export interface SonarQubeConfig {
   baseUrl: string
   token: string
@@ -19,30 +21,14 @@ export class SonarQubeService {
   }
 
   private async makeRequest(endpoint: string, params: Record<string, string> = {}) {
-    const url = new URL(`${this.baseUrl}/api/${endpoint}`)
-    
-    // Add organization if specified
-    if (this.organization) {
-      params.organization = this.organization
-    }
-    
-    // Add query parameters
-    Object.entries(params).forEach(([key, value]) => {
-      url.searchParams.append(key, value)
+    // Use the server function proxy to avoid CORS issues
+    return await sonarQubeProxy({
+      baseUrl: this.baseUrl,
+      token: this.token,
+      organization: this.organization,
+      endpoint,
+      params
     })
-
-    const response = await fetch(url.toString(), {
-      headers: {
-        'Authorization': `Bearer ${this.token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`SonarQube API error: ${response.status} ${response.statusText}`)
-    }
-
-    return response.json()
   }
 
   // Fetch all projects
