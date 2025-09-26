@@ -1,0 +1,1 @@
+{"version":3,"file":"constants.js","sources":["../../../src/start-compiler-plugin/constants.ts"],"sourcesContent":["export const transformFuncs = [\n  'createServerOnlyFn',\n  'createClientOnlyFn',\n  'createIsomorphicFn',\n  'createMiddleware',\n] as const\n"],"names":[],"mappings":"AAAO,MAAM,iBAAiB;AAAA,EAC5B;AAAA,EACA;AAAA,EACA;AAAA,EACA;AACF;"}
