@@ -40,10 +40,24 @@ export const sonarQubeProxy = createServerFn(
           'Content-Type': 'application/json',
           'User-Agent': 'SonarQuest-Proxy/1.0',
         },
+        // Add timeout to prevent hanging requests
+        signal: AbortSignal.timeout(10000), // 10 second timeout
       })
 
       if (!response.ok) {
-        throw new Error(`SonarQube API error: ${response.status} ${response.statusText}`)
+        // Provide more detailed error information
+        const status = response.status
+        const statusText = response.statusText
+        
+        if (status === 401) {
+          throw new Error(`Authentication failed: Invalid token or insufficient permissions`)
+        } else if (status === 403) {
+          throw new Error(`Access forbidden: Check your permissions and organization settings`)
+        } else if (status === 404) {
+          throw new Error(`SonarQube server not found: Verify the server URL`)
+        } else {
+          throw new Error(`SonarQube API error: ${status} ${statusText}`)
+        }
       }
 
       const responseData = await response.json()
@@ -51,9 +65,17 @@ export const sonarQubeProxy = createServerFn(
 
     } catch (error) {
       console.error('SonarQube proxy error:', error)
-      throw new Error(
-        `Proxy error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
+      
+      // Handle different types of errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to SonarQube server. Check the URL and network connectivity.')
+      } else if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout: SonarQube server took too long to respond')
+      } else if (error instanceof Error) {
+        throw error // Re-throw our custom errors
+      } else {
+        throw new Error('Unknown error occurred while connecting to SonarQube')
+      }
     }
   }
 )
