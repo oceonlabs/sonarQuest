@@ -1,1 +1,0 @@
-export declare function getDefaultSerovalPlugins(): (import('seroval').Plugin<any, import('seroval').SerovalNode> | import('seroval').Plugin<Error, any> | import('seroval').Plugin<ReadableStream<any>, any>)[];

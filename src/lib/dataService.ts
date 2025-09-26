@@ -1,22 +1,31 @@
 import { createSonarQubeService } from './sonarqubeService'
 import { mockProjects, mockDevelopers, mockTeams, mockAchievements } from './mockData'
 import type { Project, Developer, Team, Achievement } from './mockData'
+import { configService } from './configService'
 
-// Configuration from environment variables
-const SONARQUBE_CONFIG = {
-  baseUrl: import.meta.env.VITE_SONARQUBE_URL || '',
-  token: import.meta.env.VITE_SONARQUBE_TOKEN || '',
-  organization: import.meta.env.VITE_SONARQUBE_ORGANIZATION,
-}
-
-const USE_REAL_SONARQUBE = import.meta.env.VITE_USE_REAL_SONARQUBE === 'true'
-
-// Create SonarQube service instance
+// Create SonarQube service instance dynamically based on configuration
 let sonarQubeService: ReturnType<typeof createSonarQubeService> | null = null
 
-if (USE_REAL_SONARQUBE && SONARQUBE_CONFIG.baseUrl && SONARQUBE_CONFIG.token) {
-  sonarQubeService = createSonarQubeService(SONARQUBE_CONFIG)
+function updateSonarQubeService() {
+  const config = configService.getConfig()
+  if (config.isConnected && config.baseUrl && config.token) {
+    sonarQubeService = createSonarQubeService({
+      baseUrl: config.baseUrl,
+      token: config.token,
+      organization: config.organization
+    })
+  } else {
+    sonarQubeService = null
+  }
 }
+
+// Initialize service
+updateSonarQubeService()
+
+// Subscribe to configuration changes
+configService.subscribe(() => {
+  updateSonarQubeService()
+})
 
 export class DataService {
   private static instance: DataService
@@ -144,7 +153,9 @@ export class DataService {
 
   // Method to get connection status
   async getConnectionStatus() {
-    if (!sonarQubeService) {
+    const config = configService.getConfig()
+    
+    if (!sonarQubeService || !config.isConnected) {
       return {
         connected: false,
         mode: 'mock',
@@ -158,13 +169,35 @@ export class DataService {
         connected: isConnected,
         mode: 'real',
         message: isConnected 
-          ? `Connected to ${SONARQUBE_CONFIG.baseUrl}` 
+          ? `Connected to ${config.baseUrl}` 
           : 'Connection to SonarQube failed'
       }
     } catch (error) {
       return {
         connected: false,
         mode: 'real',
+        message: `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }
+    }
+  }
+
+  // Method to test connection with provided credentials
+  async testConnection(baseUrl: string, token: string, organization?: string) {
+    try {
+      const testService = createSonarQubeService({
+        baseUrl: baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl,
+        token,
+        organization
+      })
+      
+      const isConnected = await testService.testConnection()
+      return {
+        success: isConnected,
+        message: isConnected ? 'Connection successful' : 'Connection failed'
+      }
+    } catch (error) {
+      return {
+        success: false,
         message: `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`
       }
     }
