@@ -442,7 +442,7 @@ function createStartHandler(cb) {
   let routerEntry = null;
   const getEntries = async () => {
     if (routerEntry === null) {
-      routerEntry = await import("./assets/router-CMODOzh_.js").then((n) => n.r);
+      routerEntry = await import("./assets/router-DLPkhNys.js").then((n) => n.r);
     }
     if (startEntry === null) {
       startEntry = await import("./assets/start-HYkvq4Ni.js");

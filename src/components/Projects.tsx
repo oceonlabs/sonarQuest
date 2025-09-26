@@ -2,9 +2,33 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge'
 import { Progress } from './ui/progress'
 import { Button } from './ui/button'
-import { mockProjects, getRatingColor, getRatingLabel, getQualityGateColor } from '../lib/mockData'
+import { getRatingColor, getRatingLabel, getQualityGateColor, type Project } from '../lib/mockData'
+import { dataService } from '../lib/dataService'
+import { useState, useEffect } from 'react'
 
 export function Projects() {
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
+  const [connectionStatus, setConnectionStatus] = useState<any>(null)
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [projectsData, status] = await Promise.all([
+          dataService.getProjects(),
+          dataService.getConnectionStatus()
+        ])
+        setProjects(projectsData)
+        setConnectionStatus(status)
+      } catch (error) {
+        console.error('Failed to load projects:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -23,9 +47,25 @@ export function Projects() {
           </div>
         </div>
 
+        {/* Connection Status */}
+        {connectionStatus && (
+          <div className="mb-4">
+            <Badge variant={connectionStatus.connected ? "default" : "secondary"}>
+              {connectionStatus.message}
+            </Badge>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="text-center py-8">
+            <p>Loading projects...</p>
+          </div>
+        ) : (
+          <>
         {/* Projects Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {mockProjects.map((project) => (
+          {projects.map((project: Project) => (
             <Card key={project.id} className="relative overflow-hidden hover:shadow-lg transition-shadow">
               {/* Quality Gate Status Strip */}
               <div className={`absolute top-0 left-0 right-0 h-1 ${
@@ -213,31 +253,33 @@ export function Projects() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {mockProjects.filter(p => p.qualityGateStatus === 'OK').length}
+                  {projects.filter((p: Project) => p.qualityGateStatus === 'OK').length}
                 </div>
                 <div className="text-sm text-gray-500">Passing Quality Gate</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-yellow-600">
-                  {mockProjects.filter(p => p.qualityGateStatus === 'WARN').length}
+                  {projects.filter((p: Project) => p.qualityGateStatus === 'WARN').length}
                 </div>
                 <div className="text-sm text-gray-500">Warning Status</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-red-600">
-                  {mockProjects.filter(p => p.qualityGateStatus === 'ERROR').length}
+                  {projects.filter((p: Project) => p.qualityGateStatus === 'ERROR').length}
                 </div>
                 <div className="text-sm text-gray-500">Failed Quality Gate</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
-                  {mockProjects.reduce((acc, p) => acc + p.metrics.ncloc, 0).toLocaleString()}
+                  {projects.reduce((acc: number, p: Project) => acc + p.metrics.ncloc, 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-500">Total Lines of Code</div>
               </div>
             </div>
           </CardContent>
         </Card>
+        </>
+        )}
       </div>
     </div>
   )
