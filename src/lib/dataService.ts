@@ -1,14 +1,24 @@
 import { createSonarQubeService } from './sonarqubeService'
+import { createSonarQubeClientService } from './sonarqubeClientService'
 import { mockProjects, mockDevelopers, mockTeams, mockAchievements } from './mockData'
 import type { Project, Developer, Team, Achievement } from './mockData'
 import { configService } from './configService'
 
 // Create SonarQube service instance dynamically based on configuration
 let sonarQubeService: ReturnType<typeof createSonarQubeService> | null = null
+let sonarQubeClientService: ReturnType<typeof createSonarQubeClientService> | null = null
 
 function updateSonarQubeService() {
   const config = configService.getConfig()
   if (config.isConnected && config.baseUrl && config.token) {
+    // Use client-side service to bypass Cloudflare bot protection
+    sonarQubeClientService = createSonarQubeClientService({
+      baseUrl: config.baseUrl,
+      token: config.token,
+      organization: config.organization
+    })
+    
+    // Keep the old service for backward compatibility if needed
     sonarQubeService = createSonarQubeService({
       baseUrl: config.baseUrl,
       token: config.token,
@@ -16,6 +26,7 @@ function updateSonarQubeService() {
     })
   } else {
     sonarQubeService = null
+    sonarQubeClientService = null
   }
 }
 
@@ -56,6 +67,56 @@ export class DataService {
     const cached = this.getCachedData<Project[]>(cacheKey)
     if (cached) return cached
 
+    // Try client-side service first to avoid Cloudflare bot protection
+    if (sonarQubeClientService) {
+      try {
+        console.log('Using client-side SonarQube service...')
+        
+        // Test connection first
+        const isConnected = await sonarQubeClientService.testConnection()
+        if (!isConnected) {
+          console.warn('SonarQube client connection failed, falling back to mock data')
+          return mockProjects
+        }
+
+        console.log('Fetching projects from SonarQube via client service...')
+        const projects = await sonarQubeClientService.getProjects()
+        
+        // Enrich projects with metrics and quality gate status
+        const enrichedProjects = await Promise.all(
+          projects.map(async (project: any) => {
+            try {
+              const [metrics, qualityGate] = await Promise.all([
+                sonarQubeClientService!.getProjectMetrics(project.key),
+                sonarQubeClientService!.getProjectQualityGate(project.key),
+              ])
+              
+              return {
+                ...project,
+                metrics,
+                qualityGateStatus: qualityGate,
+              }
+            } catch (error) {
+              console.warn(`Failed to enrich project ${project.key}:`, error)
+              return {
+                ...project,
+                metrics: {},
+                qualityGateStatus: 'OK',
+              }
+            }
+          })
+        )
+
+        this.setCachedData(cacheKey, enrichedProjects)
+        return enrichedProjects
+        
+      } catch (error) {
+        console.warn('SonarQube client service failed, trying server proxy...', error)
+        // Fall through to server proxy attempt
+      }
+    }
+
+    // Fallback to server proxy if client service fails
     if (!sonarQubeService) {
       console.log('Using mock data - SonarQube not configured')
       return mockProjects
@@ -69,7 +130,7 @@ export class DataService {
         return mockProjects
       }
 
-      console.log('Fetching projects from SonarQube...')
+      console.log('Fetching projects from SonarQube via server proxy...')
       const projects = await sonarQubeService.getProjects()
       
       // Enrich projects with metrics and quality gate status
@@ -184,16 +245,35 @@ export class DataService {
   // Method to test connection with provided credentials
   async testConnection(baseUrl: string, token: string, organization?: string) {
     try {
+      // Try client service first to avoid Cloudflare bot protection
+      const testClientService = createSonarQubeClientService({
+        baseUrl: baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl,
+        token,
+        organization
+      })
+      
+      console.log('Testing connection with client service...')
+      const isConnected = await testClientService.testConnection()
+      
+      if (isConnected) {
+        return {
+          success: true,
+          message: 'Connection successful (via client service)'
+        }
+      }
+      
+      // Fallback to server proxy if client fails
+      console.log('Client service failed, trying server proxy...')
       const testService = createSonarQubeService({
         baseUrl: baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl,
         token,
         organization
       })
       
-      const isConnected = await testService.testConnection()
+      const serverConnected = await testService.testConnection()
       return {
-        success: isConnected,
-        message: isConnected ? 'Connection successful' : 'Connection failed'
+        success: serverConnected,
+        message: serverConnected ? 'Connection successful (via server proxy)' : 'Connection failed on both client and server'
       }
     } catch (error) {
       return {
