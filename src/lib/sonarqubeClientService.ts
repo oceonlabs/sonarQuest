@@ -1,13 +1,11 @@
-// SonarQube API service for connecting to your Oracle Cloud instance
-import { sonarQubeProxy } from './sonarqubeProxy'
-
+// Direct client-side SonarQube API service to bypass Cloudflare bot protection
 export interface SonarQubeConfig {
   baseUrl: string
   token: string
   organization?: string
 }
 
-export class SonarQubeService {
+export class SonarQubeClientService {
   private baseUrl: string
   private token: string
   private organization?: string
@@ -21,26 +19,79 @@ export class SonarQubeService {
   }
 
   private async makeRequest(endpoint: string, params: Record<string, string> = {}) {
-    // Use the server function proxy to avoid CORS issues
     try {
-      const requestData = {
-        baseUrl: this.baseUrl,
-        token: this.token,
-        organization: this.organization,
-        endpoint,
-        params
+      // Construct the SonarQube API URL
+      const url = new URL(`${this.baseUrl}/api/${endpoint}`)
+      
+      // Add organization if specified
+      if (this.organization && this.organization.trim()) {
+        params.organization = this.organization
+        console.log('Adding organization parameter:', this.organization)
+      } else {
+        console.log('No organization specified - using default')
       }
       
-      console.log('Calling sonarQubeProxy with:', requestData)
-      
-      // Use the TanStack Start server function with proper options
-      const result = await sonarQubeProxy({
-        data: requestData
-      } as any)
-      return result
+      // Add query parameters
+      Object.entries(params || {}).forEach(([key, value]) => {
+        url.searchParams.append(key, String(value))
+      })
+
+      console.log('Making direct client request to:', url.toString())
+
+      // Make direct request from browser - this should bypass Cloudflare bot protection
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.token}`,
+          'Content-Type': 'application/json',
+        },
+        // This is important - tells the browser to include credentials/cookies
+        credentials: 'omit', // Don't send cookies to avoid CORS issues
+        mode: 'cors', // Enable CORS
+      })
+
+      if (!response.ok) {
+        const status = response.status
+        const statusText = response.statusText
+        
+        // Try to get the response body for more details
+        let errorDetails = ''
+        try {
+          const errorText = await response.text()
+          errorDetails = errorText ? ` - ${errorText.substring(0, 500)}` : ''
+        } catch {
+          // Ignore if we can't read the response body
+        }
+        
+        console.error(`SonarQube API error: ${status} ${statusText}${errorDetails}`)
+        
+        if (status === 0 || status === undefined) {
+          throw new Error('Network error: Unable to connect to SonarQube server. This might be a CORS issue.')
+        } else if (status === 401) {
+          throw new Error(`Authentication failed: Invalid token or insufficient permissions${errorDetails}`)
+        } else if (status === 403) {
+          throw new Error(`Access forbidden: Check your permissions and organization settings${errorDetails}`)
+        } else if (status === 404) {
+          throw new Error(`SonarQube server not found: Verify the server URL${errorDetails}`)
+        } else {
+          throw new Error(`SonarQube API error: ${status} ${statusText}${errorDetails}`)
+        }
+      }
+
+      const responseData = await response.json()
+      return responseData
+
     } catch (error) {
-      console.error('SonarQube proxy error:', error)
-      throw error
+      console.error('SonarQube client error:', error)
+      
+      // Handle different types of errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error('Network error: Unable to connect to SonarQube server. This might be a CORS issue - check if CORS is enabled on your SonarQube server.')
+      } else if (error instanceof Error) {
+        throw error
+      } else {
+        throw new Error('Unknown error occurred while connecting to SonarQube')
+      }
     }
   }
 
@@ -151,7 +202,7 @@ export class SonarQubeService {
   // Test connection
   async testConnection() {
     try {
-      // Special mock mode for testing - if URL contains 'mock' or 'localhost', simulate success
+      // Special mock mode for testing
       if (this.baseUrl.includes('mock') || this.baseUrl.includes('localhost')) {
         console.log('Mock connection test - simulating success')
         return true
@@ -167,6 +218,6 @@ export class SonarQubeService {
 }
 
 // Factory function to create service instance
-export function createSonarQubeService(config: SonarQubeConfig) {
-  return new SonarQubeService(config)
+export function createSonarQubeClientService(config: SonarQubeConfig) {
+  return new SonarQubeClientService(config)
 }
