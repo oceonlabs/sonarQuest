@@ -300,7 +300,7 @@ const VIRTUAL_MODULES = {
 async function loadVirtualModule(id) {
   switch (id) {
     case VIRTUAL_MODULES.startManifest:
-      return await import("./assets/_tanstack-start-manifest_v-BTbOU_fe.js");
+      return await import("./assets/_tanstack-start-manifest_v-w1skSqHI.js");
     case VIRTUAL_MODULES.serverFnManifest:
       return await import("./assets/_tanstack-start-server-fn-manifest_v-B_gVxbvQ.js");
     case VIRTUAL_MODULES.injectedHeadScripts:
