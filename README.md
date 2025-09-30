@@ -98,13 +98,14 @@ src/
 
 ## SonarQube Integration 🔗
 
-SonarQuest now includes built-in CORS handling for seamless SonarQube integration. The application uses a server-side proxy to bypass browser CORS restrictions, allowing direct connections to any SonarQube instance.
+SonarQuest includes intelligent Cloudflare bypass and seamless SonarQube integration. The application automatically detects and handles various connection scenarios, including Cloudflare-protected instances.
 
 ### Features
-- ✅ **CORS-free connections**: No browser CORS restrictions
-- ✅ **Secure authentication**: Tokens handled server-side
-- ✅ **Real-time connection testing**: Test your connection before connecting
-- ✅ **Detailed error handling**: Clear error messages for troubleshooting
+- ✅ **Automatic Cloudflare Detection**: Detects and adapts to Cloudflare protection
+- ✅ **Intelligent Bypass Strategies**: Multiple automatic bypass methods
+- ✅ **CORS-free connections**: Server-side proxy bypasses browser restrictions
+- ✅ **Real-time connection testing**: Test connections before connecting
+- ✅ **User-friendly error messages**: Clear guidance for connection issues
 - ✅ **Organization support**: Works with SonarCloud and multi-org setups
 
 ### Quick Setup
@@ -114,12 +115,28 @@ SonarQuest now includes built-in CORS handling for seamless SonarQube integratio
    - Server URL (e.g., `https://your-sonarqube.company.com`)
    - User Token (generate in SonarQube: Account → Security → Tokens)
    - Organization (optional, for SonarCloud or multi-org setups)
-3. **Test Connection** to verify the setup
-4. **Connect** to start using real data
+3. **Review Cloudflare Status**: The app will automatically detect protection level
+4. **Test Connection** to verify the setup
+5. **Connect** to start using real data
+
+### Cloudflare Protection Handling
+
+The application automatically handles different levels of Cloudflare protection:
+
+- **🟢 No Protection**: Direct connection works normally
+- **🟡 Basic Protection**: Automatic header enhancement and retry logic
+- **🟠 Under Attack Mode**: Enhanced bypass strategies with delays
+- **🔴 Challenge Mode**: Manual intervention may be required
+
+**Automatic Strategies Applied:**
+- Realistic browser headers and user-agent rotation
+- Smart request timing and delays
+- Automatic retry logic with exponential backoff
+- Connection status monitoring and recommendations
 
 ### Environment Configuration (Optional)
 
-For automatic connection on startup, set these environment variables:
+For automatic connection on startup:
 
 ```bash
 # Your SonarQube server URL
@@ -135,39 +152,18 @@ VITE_SONARQUBE_ORGANIZATION=your_organization_key
 VITE_USE_REAL_SONARQUBE=true
 ```
 
-### Technical Implementation
+### Troubleshooting Connection Issues
 
-The CORS fix is implemented using TanStack Start server functions:
-- **Client requests** go to a server-side proxy function
-- **Server proxy** makes the actual SonarQube API calls
-- **No CORS issues** since server-to-server requests aren't restricted
-- **Transparent integration** - no changes needed to existing UI
+The app provides intelligent error messages and recommendations:
 
-**Example TanStack Start server function implementation:**  
-_File: `src/routes/api/sonarqube.ts`_
+| **Error** | **Likely Cause** | **Automatic Solution** | **Manual Options** |
+|-----------|-----------------|----------------------|-------------------|
+| 403 Forbidden | Cloudflare protection | Enhanced headers, retry logic | VPN, IP whitelisting |
+| 503 Service Unavailable | Under Attack mode | Increased delays, backoff | Contact admin, wait |
+| 429 Rate Limited | Too many requests | Automatic delays | Reduce frequency |
+| Network Error | Connectivity issue | Retry with timeout | Check URL, network |
 
-```ts
-// src/routes/api/sonarqube.ts
-import { server$ } from '@tanstack/start/server'
-
-export const getSonarQubeData = server$(async (params) => {
-  const response = await fetch(`https://your-sonarqube-server/api/${params.endpoint}`, {
-    headers: {
-      'Authorization': `Bearer ${process.env.VITE_SONARQUBE_TOKEN}`,
-    },
-  });
-  return response.json();
-});
-### Troubleshooting
-
-Common connection issues and solutions:
-
-| **Error** | **Solution** |
-|-------|----------|
-| Network error | Verify SonarQube URL is accessible |
-| Authentication failed | Check your user token is valid |
-| Access forbidden | Ensure token has sufficient permissions |
-| Server not found | Verify the server URL is correct |
+For detailed troubleshooting, see: [CLOUDFLARE_BYPASS.md](./CLOUDFLARE_BYPASS.md)
 
 ### Example API Integration
 

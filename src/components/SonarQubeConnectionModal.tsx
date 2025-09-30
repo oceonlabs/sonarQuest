@@ -14,6 +14,8 @@ import {
 import { Badge } from './ui/badge'
 import { configService } from '../lib/configService'
 import { dataService } from '../lib/dataService'
+import { CloudflareStatus } from './CloudflareStatus'
+import { CloudflareHelper } from './CloudflareHelper'
 
 interface ConnectionModalProps {
   trigger: React.ReactNode
@@ -187,6 +189,20 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
                 {testResult.message}
               </Badge>
             </div>
+          )}
+
+          {/* Show Cloudflare status when URL is entered */}
+          {formData.baseUrl && formData.baseUrl !== '' && (
+            <CloudflareStatus sonarQubeUrl={formData.baseUrl} />
+          )}
+
+          {/* Show Cloudflare helper if there's an error that looks like Cloudflare */}
+          {testResult && !testResult.success && (
+            <CloudflareHelper 
+              errorMessage={testResult.message}
+              sonarQubeUrl={formData.baseUrl}
+              onRetry={handleTestConnection}
+            />
           )}
         </div>
         
