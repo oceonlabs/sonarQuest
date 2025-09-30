@@ -6,12 +6,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # Replace with your Oracle Cloud SonarQube instance details
-      - VITE_SONARQUBE_URL=https://your-oracle-sonarqube.com
+      # Replace with your SonarQube instance details
+      - VITE_SONARQUBE_URL=https://your-sonarqube-instance.com
       - VITE_SONARQUBE_TOKEN=your_token_here
       - VITE_USE_REAL_SONARQUBE=true
-      # Optional organization (if using SonarCloud or multi-org setup)
-      # - VITE_SONARQUBE_ORGANIZATION=your_org
+      # Optional organization (for SonarCloud or multi-org setups)
+      # - VITE_SONARQUBE_ORGANIZATION=your_organization_key
     restart: unless-stopped
     
   # Optional: Add your SonarQube instance here if running locally

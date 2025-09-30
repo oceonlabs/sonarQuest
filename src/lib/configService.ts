@@ -4,6 +4,13 @@ export interface SonarQubeConnectionConfig {
   token: string
   organization?: string
   isConnected: boolean
+  proxy?: {
+    enabled: boolean
+    type: 'http' | 'socks5' | 'cloudflare-tunnel'
+    host?: string
+    port?: number
+    tunnelUrl?: string
+  }
 }
 
 const SONARQUBE_CONFIG_KEY = 'sonarquest-config'
@@ -15,7 +22,14 @@ const getDefaultConfig = (): SonarQubeConnectionConfig => ({
   organization: import.meta.env.VITE_SONARQUBE_ORGANIZATION || '',
   isConnected: !!(import.meta.env.VITE_USE_REAL_SONARQUBE === 'true' && 
                   import.meta.env.VITE_SONARQUBE_URL && 
-                  import.meta.env.VITE_SONARQUBE_TOKEN)
+                  import.meta.env.VITE_SONARQUBE_TOKEN),
+  proxy: {
+    enabled: import.meta.env.VITE_PROXY_ENABLED === 'true',
+    type: (import.meta.env.VITE_PROXY_TYPE as 'http' | 'socks5' | 'cloudflare-tunnel') || 'http',
+    host: import.meta.env.VITE_PROXY_HOST || '',
+    port: import.meta.env.VITE_PROXY_PORT ? parseInt(import.meta.env.VITE_PROXY_PORT) : undefined,
+    tunnelUrl: import.meta.env.VITE_PROXY_TUNNEL_URL || ''
+  }
 })
 
 class ConfigurationService {
