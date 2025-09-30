@@ -107,6 +107,15 @@ class ConfigurationService {
     return { ...this.config }
   }
 
+  // Get config without sensitive token data (for UI display)
+  getConfigSafe(): Omit<SonarQubeConnectionConfig, 'token'> & { hasToken: boolean } {
+    const { token, ...safeConfig } = this.config
+    return {
+      ...safeConfig,
+      hasToken: !!token
+    }
+  }
+
   updateConfig(newConfig: Partial<SonarQubeConnectionConfig>): void {
     // Don't allow updates if configuration is from environment variables
     if (this.config.isConfiguredViaEnv) {
