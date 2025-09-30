@@ -98,26 +98,96 @@ src/
 
 ## SonarQube Integration 🔗
 
-SonarQuest includes intelligent Cloudflare bypass and seamless SonarQube integration. The application automatically detects and handles various connection scenarios, including Cloudflare-protected instances.
+SonarQuest uses environment variables for configuration, making setup simple and secure. The application automatically connects to SonarQube on startup when properly configured.
 
 ### Features
-- ✅ **Automatic Cloudflare Detection**: Detects and adapts to Cloudflare protection
+- ✅ **Environment-based Configuration**: Simple .env file setup
+- ✅ **Automatic Connection**: Connects on startup with valid credentials
+- ✅ **Intelligent Cloudflare Detection**: Detects and adapts to Cloudflare protection
 - ✅ **Intelligent Bypass Strategies**: Multiple automatic bypass methods
 - ✅ **CORS-free connections**: Server-side proxy bypasses browser restrictions
-- ✅ **Real-time connection testing**: Test connections before connecting
-- ✅ **User-friendly error messages**: Clear guidance for connection issues
 - ✅ **Organization support**: Works with SonarCloud and multi-org setups
 
 ### Quick Setup
 
-1. **Click "Connect SonarQube"** in the application header
-2. **Enter your SonarQube details**:
-   - Server URL (e.g., `https://your-sonarqube.company.com`)
-   - User Token (generate in SonarQube: Account → Security → Tokens)
-   - Organization (optional, for SonarCloud or multi-org setups)
-3. **Review Cloudflare Status**: The app will automatically detect protection level
-4. **Test Connection** to verify the setup
-5. **Connect** to start using real data
+#### 1. Create Environment File
+
+Copy the example environment file and fill in your SonarQube details:
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit the .env file with your SonarQube details
+```
+
+#### 2. Configure Your SonarQube Connection
+
+Edit the `.env` file:
+
+```bash
+# Required: Your SonarQube server URL
+VITE_SONARQUBE_URL=https://your-sonarqube-instance.com
+
+# Required: SonarQube user token (generate in SonarQube: Account > Security > Tokens)
+VITE_SONARQUBE_TOKEN=your_sonarqube_token_here
+
+# Optional: Organization key (for SonarCloud or multi-organization setups)
+# VITE_SONARQUBE_ORGANIZATION=your_organization_key
+
+# Optional: Enable real data mode (set to 'false' to use mock data)
+VITE_USE_REAL_SONARQUBE=true
+```
+
+#### 3. Start the Application
+
+```bash
+# Development mode
+npm run dev
+
+# Production mode
+npm run build
+npm start
+```
+
+The application will automatically connect to your SonarQube instance on startup!
+
+### Docker Setup
+
+#### Using Docker Compose (Recommended)
+
+1. **Create your .env file** as described above
+
+2. **Build and run**:
+   ```bash
+   docker-compose up -d
+   ```
+
+The docker-compose.yml is configured to automatically use your .env file.
+
+#### Using Docker Build
+
+Build with environment variables:
+
+```bash
+docker build \
+  --build-arg VITE_SONARQUBE_URL=https://your-sonarqube-instance.com \
+  --build-arg VITE_SONARQUBE_TOKEN=your_token_here \
+  --build-arg VITE_USE_REAL_SONARQUBE=true \
+  -t sonarquest .
+
+docker run -p 3000:3000 sonarquest
+```
+
+### Configuration Management
+
+When environment variables are configured:
+- ✅ The application connects automatically on startup
+- ✅ Configuration is read-only through the UI
+- ✅ Changes must be made to the .env file
+- ✅ Application restart is required for changes to take effect
+
+This ensures consistent configuration across deployments and prevents accidental changes.
 
 ### Cloudflare Protection Handling
 
@@ -133,24 +203,6 @@ The application automatically handles different levels of Cloudflare protection:
 - Smart request timing and delays
 - Automatic retry logic with exponential backoff
 - Connection status monitoring and recommendations
-
-### Environment Configuration (Optional)
-
-For automatic connection on startup:
-
-```bash
-# Your SonarQube server URL
-VITE_SONARQUBE_URL=https://your-sonarqube-instance.com
-
-# SonarQube user token
-VITE_SONARQUBE_TOKEN=your_sonarqube_token_here
-
-# Organization key (optional)
-VITE_SONARQUBE_ORGANIZATION=your_organization_key
-
-# Enable real data mode
-VITE_USE_REAL_SONARQUBE=true
-```
 
 ### Troubleshooting Connection Issues
 

@@ -4,6 +4,7 @@ export interface SonarQubeConnectionConfig {
   token: string
   organization?: string
   isConnected: boolean
+  isConfiguredViaEnv: boolean
   proxy?: {
     enabled: boolean
     type: 'http' | 'socks5' | 'cloudflare-tunnel'
@@ -15,6 +16,11 @@ export interface SonarQubeConnectionConfig {
 
 const SONARQUBE_CONFIG_KEY = 'sonarquest-config'
 
+// Check if configuration is provided via environment variables
+const hasEnvConfig = (): boolean => {
+  return !!(import.meta.env.VITE_SONARQUBE_URL && import.meta.env.VITE_SONARQUBE_TOKEN)
+}
+
 // Default configuration from environment variables
 const getDefaultConfig = (): SonarQubeConnectionConfig => ({
   baseUrl: import.meta.env.VITE_SONARQUBE_URL || '',
@@ -23,6 +29,7 @@ const getDefaultConfig = (): SonarQubeConnectionConfig => ({
   isConnected: !!(import.meta.env.VITE_USE_REAL_SONARQUBE === 'true' && 
                   import.meta.env.VITE_SONARQUBE_URL && 
                   import.meta.env.VITE_SONARQUBE_TOKEN),
+  isConfiguredViaEnv: hasEnvConfig(),
   proxy: {
     enabled: import.meta.env.VITE_PROXY_ENABLED === 'true',
     type: (import.meta.env.VITE_PROXY_TYPE as 'http' | 'socks5' | 'cloudflare-tunnel') || 'http',
@@ -50,22 +57,38 @@ class ConfigurationService {
   }
 
   private loadConfig(): SonarQubeConnectionConfig {
+    const defaultConfig = getDefaultConfig()
+    
+    // If configuration is provided via environment variables, use it exclusively
+    // and ignore localStorage
+    if (defaultConfig.isConfiguredViaEnv) {
+      console.log('SonarQube configuration loaded from environment variables')
+      return defaultConfig
+    }
+    
+    // Otherwise, try to load from localStorage
     try {
       // Check if we're in a browser environment
       if (typeof window !== 'undefined' && window.localStorage) {
         const saved = localStorage.getItem(SONARQUBE_CONFIG_KEY)
         if (saved) {
           const parsed = JSON.parse(saved)
-          return { ...getDefaultConfig(), ...parsed }
+          return { ...defaultConfig, ...parsed, isConfiguredViaEnv: false }
         }
       }
     } catch (error) {
       console.warn('Failed to load SonarQube config from localStorage:', error)
     }
-    return getDefaultConfig()
+    return defaultConfig
   }
 
   private saveConfig(): void {
+    // Don't save to localStorage if configuration is from environment variables
+    if (this.config.isConfiguredViaEnv) {
+      console.log('Configuration is managed via environment variables, skipping localStorage save')
+      return
+    }
+    
     try {
       // Check if we're in a browser environment
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -85,12 +108,24 @@ class ConfigurationService {
   }
 
   updateConfig(newConfig: Partial<SonarQubeConnectionConfig>): void {
+    // Don't allow updates if configuration is from environment variables
+    if (this.config.isConfiguredViaEnv) {
+      console.warn('Cannot update configuration: it is managed via environment variables')
+      return
+    }
+    
     this.config = { ...this.config, ...newConfig }
     this.saveConfig()
     this.notifyListeners()
   }
 
   connectToSonarQube(baseUrl: string, token: string, organization?: string): void {
+    // Don't allow manual connection if configuration is from environment variables
+    if (this.config.isConfiguredViaEnv) {
+      console.warn('Cannot manually connect: configuration is managed via environment variables')
+      return
+    }
+    
     this.updateConfig({
       baseUrl: baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl,
       token,
@@ -100,6 +135,12 @@ class ConfigurationService {
   }
 
   disconnectFromSonarQube(): void {
+    // Don't allow disconnection if configuration is from environment variables
+    if (this.config.isConfiguredViaEnv) {
+      console.warn('Cannot disconnect: configuration is managed via environment variables')
+      return
+    }
+    
     this.updateConfig({
       isConnected: false
     })
