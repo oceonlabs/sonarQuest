@@ -31,12 +31,14 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
   const [isConnected, setIsConnected] = useState(configService.getConfig().isConnected)
+  const [isConfiguredViaEnv, setIsConfiguredViaEnv] = useState(configService.getConfig().isConfiguredViaEnv)
 
   // Subscribe to config changes
   useEffect(() => {
     const unsubscribe = configService.subscribe((config) => {
       setIsConnected(config.isConnected)
-      if (config.isConnected) {
+      setIsConfiguredViaEnv(config.isConfiguredViaEnv)
+      if (config.isConnected || config.isConfiguredViaEnv) {
         setFormData({
           baseUrl: config.baseUrl,
           token: config.token,
@@ -106,8 +108,8 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open)
-    if (open && isConnected) {
-      // Load current config when opening if connected
+    if (open && (isConnected || isConfiguredViaEnv)) {
+      // Load current config when opening if connected or configured via env
       const config = configService.getConfig()
       setFormData({
         baseUrl: config.baseUrl,
@@ -116,7 +118,7 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
       })
     } else if (!open) {
       // Reset form when closing if not connected
-      if (!isConnected) {
+      if (!isConnected && !isConfiguredViaEnv) {
         setFormData({ baseUrl: '', token: '', organization: '' })
         setTestResult(null)
       }
@@ -131,12 +133,15 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {isConnected ? 'SonarQube Connection' : 'Connect to SonarQube'}
+            {isConfiguredViaEnv ? 'SonarQube Configuration (Environment)' : 
+             isConnected ? 'SonarQube Connection' : 'Connect to SonarQube'}
           </DialogTitle>
           <DialogDescription>
-            {isConnected 
-              ? 'Manage your SonarQube connection settings.'
-              : 'Configure your SonarQube server connection to start using real data.'}
+            {isConfiguredViaEnv 
+              ? 'Configuration is managed via environment variables (.env file). Changes must be made in the .env file and require an application restart.'
+              : isConnected 
+                ? 'Manage your SonarQube connection settings.'
+                : 'Configure your SonarQube server connection to start using real data.'}
           </DialogDescription>
         </DialogHeader>
         
@@ -144,8 +149,19 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
           {isConnected && (
             <div className="mb-4">
               <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
-                Connected
+                {isConfiguredViaEnv ? 'Configured via Environment' : 'Connected'}
               </Badge>
+            </div>
+          )}
+          
+          {isConfiguredViaEnv && (
+            <div className="rounded-md bg-blue-50 p-4 text-sm text-blue-800 border border-blue-200">
+              <p className="font-semibold mb-2">ℹ️ Environment Configuration Active</p>
+              <p>
+                Your SonarQube connection is configured via environment variables. 
+                To change these settings, update your <code className="bg-blue-100 px-1 rounded">.env</code> file 
+                and restart the application.
+              </p>
             </div>
           )}
           
@@ -156,6 +172,8 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
               placeholder="https://your-sonarqube-instance.com"
               value={formData.baseUrl}
               onChange={handleInputChange('baseUrl')}
+              disabled={isConfiguredViaEnv}
+              className={isConfiguredViaEnv ? 'bg-gray-100' : ''}
             />
           </div>
           
@@ -167,10 +185,14 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
               placeholder="Your SonarQube user token"
               value={formData.token}
               onChange={handleInputChange('token')}
+              disabled={isConfiguredViaEnv}
+              className={isConfiguredViaEnv ? 'bg-gray-100' : ''}
             />
-            <p className="text-xs text-gray-500">
-              Generate in SonarQube: Account → Security → Tokens
-            </p>
+            {!isConfiguredViaEnv && (
+              <p className="text-xs text-gray-500">
+                Generate in SonarQube: Account → Security → Tokens
+              </p>
+            )}
           </div>
           
           <div className="grid gap-2">
@@ -180,6 +202,8 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
               placeholder="your-organization-key"
               value={formData.organization}
               onChange={handleInputChange('organization')}
+              disabled={isConfiguredViaEnv}
+              className={isConfiguredViaEnv ? 'bg-gray-100' : ''}
             />
           </div>
           
@@ -197,7 +221,7 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
           )}
 
           {/* Show Cloudflare helper if there's an error that looks like Cloudflare */}
-          {testResult && !testResult.success && (
+          {testResult && !testResult.success && !isConfiguredViaEnv && (
             <CloudflareHelper 
               errorMessage={testResult.message}
               sonarQubeUrl={formData.baseUrl}
@@ -208,7 +232,7 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
         
         <DialogFooter>
           <div className="flex gap-2 w-full sm:w-auto">
-            {isConnected && (
+            {!isConfiguredViaEnv && isConnected && (
               <Button
                 variant="destructive"
                 onClick={handleDisconnect}
@@ -217,20 +241,30 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
               </Button>
             )}
             
-            <Button
-              variant="outline"
-              onClick={handleTestConnection}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Testing...' : 'Test Connection'}
-            </Button>
+            {!isConfiguredViaEnv && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleTestConnection}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Testing...' : 'Test Connection'}
+                </Button>
+                
+                <Button
+                  onClick={handleConnect}
+                  disabled={isLoading || (!testResult?.success && !isConnected)}
+                >
+                  {isConnected ? 'Update' : 'Connect'}
+                </Button>
+              </>
+            )}
             
-            <Button
-              onClick={handleConnect}
-              disabled={isLoading || (!testResult?.success && !isConnected)}
-            >
-              {isConnected ? 'Update' : 'Connect'}
-            </Button>
+            {isConfiguredViaEnv && (
+              <Button onClick={() => setIsOpen(false)}>
+                Close
+              </Button>
+            )}
           </div>
         </DialogFooter>
       </DialogContent>
