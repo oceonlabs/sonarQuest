@@ -40,8 +40,8 @@ A modern gamification application that transforms SonarQube code quality metrics
 
 ### Prerequisites
 
-- Node.js 18+ (recommended: Node.js 20+)
-- npm or yarn package manager
+- Node.js 22+ (required by TanStack Start framework)
+- npm package manager (latest version recommended)
 
 ### Installation
 
@@ -211,13 +211,45 @@ export async function fetchProjects() {
 - `npm run start` - Start production server
 - `npm run test` - Run tests
 
+### CI/CD Pipeline 🚀
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+#### **CI Pipeline** (`.github/workflows/ci.yml`)
+- **Trigger**: Push to `main`/`develop` branches and all pull requests
+- **Node.js Version**: 22.x (matches TanStack Start requirements)
+- **Steps**:
+  - ✅ Install dependencies with npm cache
+  - ✅ TypeScript compilation check (`npx tsc --noEmit`)
+  - ✅ Run all tests (`npm test`)
+  - ✅ Build application for production
+  - ✅ Validate build artifacts exist
+  - ✅ Upload build artifacts for review (7-day retention)
+
+#### **Deployment Pipeline** (`.github/workflows/deploy.yml`)
+- **Trigger**: Push to `main` branch + CI pipeline success
+- **Target**: GitHub Pages
+- **Protection**: Only deploys after CI pipeline passes
+
 ### Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We use comprehensive pull request templates and CI validation to ensure code quality:
+
+1. **Fork the repository**
+2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Make your changes** following project coding standards
+4. **Run tests locally** (`npm test`)
+5. **Build and verify** (`npm run build`)
+6. **Commit your changes** (`git commit -m 'Add amazing feature'`)
+7. **Push to your branch** (`git push origin feature/amazing-feature`)
+8. **Open a Pull Request** using our detailed template
+9. **Wait for CI validation** - all checks must pass before merging
+
+#### **Pull Request Requirements** ✅
+- [ ] All CI checks passing (TypeScript, tests, build)
+- [ ] Code review approved
+- [ ] Branch up to date with main
+- [ ] Descriptive PR title and detailed description using our template
 
 ## Customization 🎨
 
