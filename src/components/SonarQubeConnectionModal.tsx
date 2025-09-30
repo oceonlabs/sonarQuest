@@ -145,7 +145,7 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-4 py-4 overflow-y-auto">
           {isConnected && (
             <div className="mb-4">
               <Badge variant="default" className="bg-green-100 text-green-800 border-green-300">
