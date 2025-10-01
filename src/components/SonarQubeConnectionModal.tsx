@@ -106,7 +106,7 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
     }
 
     // Use existing token if user hasn't entered a new one
-    const tokenToUse = formData.token.trim() || (hasExistingToken ? configService.getToken() : '')
+    const tokenToUse = formData.token.trim() || (hasExistingToken ? configService.getConfig().token : '')
 
     configService.connectToSonarQube(
       formData.baseUrl.trim(),
