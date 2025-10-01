@@ -32,16 +32,19 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
   const [isConnected, setIsConnected] = useState(configService.getConfig().isConnected)
   const [isConfiguredViaEnv, setIsConfiguredViaEnv] = useState(configService.getConfig().isConfiguredViaEnv)
+  const [hasExistingToken, setHasExistingToken] = useState(false)
 
   // Subscribe to config changes
   useEffect(() => {
     const unsubscribe = configService.subscribe((config) => {
       setIsConnected(config.isConnected)
       setIsConfiguredViaEnv(config.isConfiguredViaEnv)
+      setHasExistingToken(!!config.token)
       if (config.isConnected || config.isConfiguredViaEnv) {
+        // Never load the actual token into form state for security
         setFormData({
           baseUrl: config.baseUrl,
-          token: config.token,
+          token: '', // Leave empty to avoid exposing in DOM
           organization: config.organization || ''
         })
       }
@@ -57,10 +60,21 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
   }
 
   const handleTestConnection = async () => {
-    if (!formData.baseUrl.trim() || !formData.token.trim()) {
+    if (!formData.baseUrl.trim()) {
       setTestResult({
         success: false,
-        message: 'Please provide both URL and token'
+        message: 'Please provide a URL'
+      })
+      return
+    }
+
+    // Use existing token if user hasn't entered a new one
+    const tokenToTest = formData.token.trim() || (hasExistingToken ? configService.getConfig().token : '')
+    
+    if (!tokenToTest) {
+      setTestResult({
+        success: false,
+        message: 'Please provide a token'
       })
       return
     }
@@ -71,7 +85,7 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
     try {
       const result = await dataService.testConnection(
         formData.baseUrl.trim(),
-        formData.token.trim(),
+        tokenToTest,
         formData.organization.trim() || undefined
       )
       setTestResult(result)
@@ -91,9 +105,12 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
       return
     }
 
+    // Use existing token if user hasn't entered a new one
+    const tokenToUse = formData.token.trim() || (hasExistingToken ? configService.getToken() : '')
+
     configService.connectToSonarQube(
       formData.baseUrl.trim(),
-      formData.token.trim(),
+      tokenToUse,
       formData.organization.trim() || undefined
     )
     setIsOpen(false)
@@ -110,12 +127,14 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
     setIsOpen(open)
     if (open && (isConnected || isConfiguredViaEnv)) {
       // Load current config when opening if connected or configured via env
+      // But never load the token for security reasons
       const config = configService.getConfig()
       setFormData({
         baseUrl: config.baseUrl,
-        token: config.token,
+        token: '', // Never expose token in form state
         organization: config.organization || ''
       })
+      setHasExistingToken(!!config.token)
     } else if (!open) {
       // Reset form when closing if not connected
       if (!isConnected && !isConfiguredViaEnv) {
@@ -182,7 +201,7 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
             <Input
               id="token"
               type="password"
-              placeholder="Your SonarQube user token"
+              placeholder={hasExistingToken && !formData.token ? "••••••••••••••••" : "Your SonarQube user token"}
               value={formData.token}
               onChange={handleInputChange('token')}
               disabled={isConfiguredViaEnv}
@@ -190,7 +209,9 @@ export function SonarQubeConnectionModal({ trigger }: ConnectionModalProps) {
             />
             {!isConfiguredViaEnv && (
               <p className="text-xs text-gray-500">
-                Generate in SonarQube: Account → Security → Tokens
+                {hasExistingToken && !formData.token 
+                  ? "Token is saved. Leave empty to keep current token or enter a new one."
+                  : "Generate in SonarQube: Account → Security → Tokens"}
               </p>
             )}
           </div>
