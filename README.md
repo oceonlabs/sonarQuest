@@ -297,6 +297,16 @@ The application uses Tailwind CSS for styling. You can customize colors and them
 ### Metrics Configuration
 Customize the scoring system by modifying the `calculateScore` function in `src/lib/mockData.ts`.
 
+## Documentation 📖
+
+### Architecture Documentation
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Comprehensive technical architecture documentation with detailed diagrams, design patterns, and implementation details
+- **[ARCHITECTURE_VISUAL.md](./docs/ARCHITECTURE_VISUAL.md)** - Simplified visual guide with easy-to-follow diagrams and explanations
+
+### Other Documentation
+- **[CLOUDFLARE_BYPASS.md](./CLOUDFLARE_BYPASS.md)** - Detailed guide for handling Cloudflare protection
+- **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** - Community guidelines
+
 ### Screenshots
 <img width="3456" height="1936" alt="image" src="https://github.com/user-attachments/assets/3f148a62-1db9-454f-8ece-8bda37f39abb" />
 <img width="3456" height="1934" alt="image" src="https://github.com/user-attachments/assets/61243beb-749b-4da9-815d-65fe052d5bcc" />

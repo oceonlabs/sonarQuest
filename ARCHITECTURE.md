@@ -2,6 +2,8 @@
 
 This document provides a comprehensive overview of the SonarQuest application architecture, including component relationships, data flow, and key design patterns.
 
+> 💡 **Looking for a simpler visual guide?** Check out **[ARCHITECTURE_VISUAL.md](./docs/ARCHITECTURE_VISUAL.md)** for an easier-to-follow visual walkthrough with simplified diagrams and explanations.
+
 ## System Architecture Diagram
 
 ```
