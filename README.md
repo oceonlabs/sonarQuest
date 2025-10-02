@@ -75,6 +75,8 @@ npm start
 
 ## Project Structure 📁
 
+For a comprehensive architecture overview including diagrams, data flow, and design patterns, see **[ARCHITECTURE.md](./ARCHITECTURE.md)**.
+
 ```
 src/
 ├── components/           # React components
@@ -83,16 +85,31 @@ src/
 │   ├── Leaderboard.tsx  # Individual and team leaderboards
 │   ├── Projects.tsx     # Project monitoring and management
 │   ├── Achievements.tsx # Achievement tracking and badges
-│   └── Header.tsx       # Navigation header
+│   ├── Header.tsx       # Navigation header
+│   ├── SonarQubeConnectionModal.tsx  # Connection management
+│   ├── CloudflareHelper.tsx          # Cloudflare bypass helper
+│   └── CloudflareStatus.tsx          # Connection status display
 ├── lib/
-│   ├── mockData.ts      # Sample SonarQube data and types
-│   └── utils.ts         # Utility functions
+│   ├── dataService.ts           # Central data management with caching
+│   ├── configService.ts         # Configuration management
+│   ├── sonarqubeService.ts      # Server-side SonarQube API
+│   ├── sonarqubeClientService.ts # Client-side SonarQube API
+│   ├── sonarqubeProxy.ts        # Server function proxy
+│   ├── proxyService.ts          # Proxy configuration support
+│   ├── cloudflareDetector.ts    # Cloudflare detection
+│   ├── cloudflareBypass.ts      # Cloudflare bypass strategies
+│   ├── mockData.ts              # Sample SonarQube data and types
+│   ├── utils.ts                 # Utility functions
+│   └── hooks/
+│       └── useSonarQubeConnection.ts # Connection state hook
 ├── routes/              # TanStack Router pages
 │   ├── __root.tsx       # Root layout
 │   ├── index.tsx        # Dashboard page
 │   ├── leaderboard.tsx  # Leaderboard page
 │   ├── projects.tsx     # Projects page
 │   └── achievements.tsx # Achievements page
+├── router.tsx           # Router configuration
+├── routeTree.gen.ts     # Generated route tree
 └── styles.css           # Global styles and Tailwind imports
 ```
 
