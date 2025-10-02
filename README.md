@@ -75,6 +75,8 @@ npm start
 
 ## Project Structure 📁
 
+For a comprehensive architecture overview including diagrams, data flow, and design patterns, see **[ARCHITECTURE.md](./ARCHITECTURE.md)**.
+
 ```
 src/
 ├── components/           # React components
@@ -83,16 +85,31 @@ src/
 │   ├── Leaderboard.tsx  # Individual and team leaderboards
 │   ├── Projects.tsx     # Project monitoring and management
 │   ├── Achievements.tsx # Achievement tracking and badges
-│   └── Header.tsx       # Navigation header
+│   ├── Header.tsx       # Navigation header
+│   ├── SonarQubeConnectionModal.tsx  # Connection management
+│   ├── CloudflareHelper.tsx          # Cloudflare bypass helper
+│   └── CloudflareStatus.tsx          # Connection status display
 ├── lib/
-│   ├── mockData.ts      # Sample SonarQube data and types
-│   └── utils.ts         # Utility functions
+│   ├── dataService.ts           # Central data management with caching
+│   ├── configService.ts         # Configuration management
+│   ├── sonarqubeService.ts      # Server-side SonarQube API
+│   ├── sonarqubeClientService.ts # Client-side SonarQube API
+│   ├── sonarqubeProxy.ts        # Server function proxy
+│   ├── proxyService.ts          # Proxy configuration support
+│   ├── cloudflareDetector.ts    # Cloudflare detection
+│   ├── cloudflareBypass.ts      # Cloudflare bypass strategies
+│   ├── mockData.ts              # Sample SonarQube data and types
+│   ├── utils.ts                 # Utility functions
+│   └── hooks/
+│       └── useSonarQubeConnection.ts # Connection state hook
 ├── routes/              # TanStack Router pages
 │   ├── __root.tsx       # Root layout
 │   ├── index.tsx        # Dashboard page
 │   ├── leaderboard.tsx  # Leaderboard page
 │   ├── projects.tsx     # Projects page
 │   └── achievements.tsx # Achievements page
+├── router.tsx           # Router configuration
+├── routeTree.gen.ts     # Generated route tree
 └── styles.css           # Global styles and Tailwind imports
 ```
 
@@ -279,6 +296,16 @@ The application uses Tailwind CSS for styling. You can customize colors and them
 
 ### Metrics Configuration
 Customize the scoring system by modifying the `calculateScore` function in `src/lib/mockData.ts`.
+
+## Documentation 📖
+
+### Architecture Documentation
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Comprehensive technical architecture documentation with detailed diagrams, design patterns, and implementation details
+- **[ARCHITECTURE_VISUAL.md](./docs/ARCHITECTURE_VISUAL.md)** - Simplified visual guide with easy-to-follow diagrams and explanations
+
+### Other Documentation
+- **[CLOUDFLARE_BYPASS.md](./CLOUDFLARE_BYPASS.md)** - Detailed guide for handling Cloudflare protection
+- **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** - Community guidelines
 
 ### Screenshots
 <img width="3456" height="1936" alt="image" src="https://github.com/user-attachments/assets/3f148a62-1db9-454f-8ece-8bda37f39abb" />
