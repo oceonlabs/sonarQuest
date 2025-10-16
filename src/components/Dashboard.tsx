@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
 import { Progress } from './ui/progress'
-import { mockProjects, mockDevelopers, mockTeams, getRatingColor, getRatingLabel, getQualityGateColor } from '../lib/mockData'
+import { mockProjects, mockDevelopers, mockTeams, getRatingColor, getRatingLabel } from '../lib/mockData'
 
 export function Dashboard() {
   return (
@@ -116,7 +116,7 @@ export function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {mockDevelopers.map((developer, index) => (
+                  {mockDevelopers.map((developer) => (
                     <div key={developer.id} className="flex items-center gap-4 p-3 rounded-lg bg-gray-100/50">
                       <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-blue-600-foreground font-bold text-sm">
                         #{developer.rank}
