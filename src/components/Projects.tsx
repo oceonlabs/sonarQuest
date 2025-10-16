@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge'
 import { Progress } from './ui/progress'
 import { Button } from './ui/button'
-import { getRatingColor, getRatingLabel, getQualityGateColor, type Project } from '../lib/mockData'
+import { getRatingColor, getRatingLabel, type Project } from '../lib/mockData'
 import { dataService } from '../lib/dataService'
 import { useState, useEffect } from 'react'
 
